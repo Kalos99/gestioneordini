@@ -7,14 +7,16 @@ import javax.persistence.EntityManager;
 import it.prova.gestioneordini.dao.EntityManagerUtil;
 import it.prova.gestioneordini.dao.articolo.ArticoloDAO;
 import it.prova.gestioneordini.dao.categoria.CategoriaDAO;
-import it.prova.gestioneordini.exception.ArticoliAssociatiException;
+import it.prova.gestioneordini.dao.ordine.OrdineDAO;
 import it.prova.gestioneordini.exception.CategorieAssociateException;
+import it.prova.gestioneordini.exception.OrdineNonAssociatoException;
 import it.prova.gestioneordini.model.Articolo;
 
 public class ArticoloServiceImpl implements ArticoloService{
 	
 	private ArticoloDAO articoloDAO;
 	private CategoriaDAO categoriaDAO;
+	private OrdineDAO ordineDAO;
 
 	@Override
 	public List<Articolo> listAllArticoli() throws Exception {
@@ -92,8 +94,11 @@ public class ArticoloServiceImpl implements ArticoloService{
 
 			// uso l'injection per il dao
 			articoloDAO.setEntityManager(entityManager);
+			ordineDAO.setEntityManager(entityManager);
 
 			// eseguo quello che realmente devo fare
+			if(articoloInstance.getOrdine() == null || articoloInstance.getOrdine().getId() < 1)
+				throw new OrdineNonAssociatoException("Impossibile inserire: non vi è alcun ordine associato a questo articolo");
 			articoloDAO.insert(articoloInstance);
 
 			entityManager.getTransaction().commit();
@@ -144,5 +149,10 @@ public class ArticoloServiceImpl implements ArticoloService{
 	@Override
 	public void setCategoriaDAO(CategoriaDAO categoriaDAO) {
 		this.categoriaDAO = categoriaDAO;
+	}
+	
+	@Override
+	public void setOrdineDAO(OrdineDAO ordineDAO) {
+		this.ordineDAO = ordineDAO;
 	}
 }

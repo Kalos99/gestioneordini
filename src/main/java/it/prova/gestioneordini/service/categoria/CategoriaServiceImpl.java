@@ -139,6 +139,7 @@ public class CategoriaServiceImpl implements CategoriaService{
 		this.categoriaDAO = categoriaDAO;		
 	}
 	
+	@Override
 	public void setArticoloDAO(ArticoloDAO articoloDAO) {
 		this.articoloDAO = articoloDAO;		
 	}

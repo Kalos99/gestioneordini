@@ -4,6 +4,7 @@ import java.util.List;
 
 import it.prova.gestioneordini.dao.articolo.ArticoloDAO;
 import it.prova.gestioneordini.dao.categoria.CategoriaDAO;
+import it.prova.gestioneordini.dao.ordine.OrdineDAO;
 import it.prova.gestioneordini.model.Articolo;
 
 public interface ArticoloService {
@@ -22,4 +23,6 @@ public interface ArticoloService {
 	public void setArticoloDAO(ArticoloDAO articoloDAO);
 	
 	public void setCategoriaDAO(CategoriaDAO categoriaDAO);
+	
+	public void setOrdineDAO(OrdineDAO ordineDAO);
 }
