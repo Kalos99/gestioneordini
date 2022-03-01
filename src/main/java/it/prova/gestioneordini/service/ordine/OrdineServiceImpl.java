@@ -8,6 +8,7 @@ import it.prova.gestioneordini.dao.EntityManagerUtil;
 import it.prova.gestioneordini.dao.articolo.ArticoloDAO;
 import it.prova.gestioneordini.dao.ordine.OrdineDAO;
 import it.prova.gestioneordini.exception.ArticoliAssociatiException;
+import it.prova.gestioneordini.model.Articolo;
 import it.prova.gestioneordini.model.Ordine;
 
 public class OrdineServiceImpl implements OrdineService{
@@ -134,6 +135,44 @@ public class OrdineServiceImpl implements OrdineService{
 		}
 		
 	}
+	
+	@Override
+	public void associaArticoloAdOrdine(Ordine ordineInstance, Articolo articoloInstance) throws Exception {
+		// questo è come una connection
+		EntityManager entityManager = EntityManagerUtil.getEntityManager();
+
+		try {
+			// questo è come il MyConnection.getConnection()
+			entityManager.getTransaction().begin();
+
+			// uso l'injection per il dao
+			articoloDAO.setEntityManager(entityManager);
+			ordineDAO.setEntityManager(entityManager);
+
+			// 'attacco' alla sessione di hibernate i due oggetti
+			// così jpa capisce che se risulta presente quel cd non deve essere inserito
+			articoloInstance = entityManager.merge(articoloInstance);
+			// attenzione che genereInstance deve essere già presente (lo verifica dall'id)
+			// se così non è viene lanciata un'eccezione
+			ordineInstance = entityManager.merge(ordineInstance);
+
+			ordineInstance.getArticoli().add(articoloInstance);
+			// l'update non viene richiamato a mano in quanto
+			// risulta automatico, infatti il contesto di persistenza
+			// rileva che cdInstance ora è dirty vale a dire che una sua
+			// proprieta ha subito una modifica (vale anche per i Set ovviamente)
+			// inoltre se risultano già collegati lo capisce automaticamente grazie agli id
+
+			entityManager.getTransaction().commit();
+		} catch (Exception e) {
+			entityManager.getTransaction().rollback();
+			e.printStackTrace();
+			throw e;
+		} finally {
+			EntityManagerUtil.closeEntityManager(entityManager);
+		}
+		
+	}
 
 	@Override
 	public void setOrdineDAO(OrdineDAO ordineDAO) {
@@ -143,6 +182,26 @@ public class OrdineServiceImpl implements OrdineService{
 	@Override
 	public void setArticoloDAO(ArticoloDAO articoloDAO) {
 		this.articoloDAO = articoloDAO;
+	}
+
+	@Override
+	public Ordine caricaOrdineSingoloConArticoli(Long id) throws Exception {
+		// questo è come una connection
+		EntityManager entityManager = EntityManagerUtil.getEntityManager();
+
+		try {
+			// uso l'injection per il dao
+			ordineDAO.setEntityManager(entityManager);
+
+			// eseguo quello che realmente devo fare
+			return ordineDAO.findByIdFetchingArticoli(id);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		} finally {
+			EntityManagerUtil.closeEntityManager(entityManager);
+		}
 	}
 
 }

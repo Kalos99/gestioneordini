@@ -6,6 +6,7 @@ import it.prova.gestioneordini.dao.articolo.ArticoloDAO;
 import it.prova.gestioneordini.dao.categoria.CategoriaDAO;
 import it.prova.gestioneordini.dao.ordine.OrdineDAO;
 import it.prova.gestioneordini.model.Articolo;
+import it.prova.gestioneordini.model.Ordine;
 
 public interface ArticoloService {
 

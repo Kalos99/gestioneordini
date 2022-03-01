@@ -34,6 +34,7 @@ public class testgestioneordini {
 
 			testInserimentoNuovoOrdine(ordineServiceInstance);
 			testInserimentoNuovaCategoria(categoriaServiceInstance);
+			testAggiungiArticoloAdOrdineEsistente(articoloServiceInstance, ordineServiceInstance);
 
 			System.out.println(
 					"****************************** fine batteria di test ********************************************");
@@ -57,6 +58,7 @@ public class testgestioneordini {
 	
 	private static void testInserimentoNuovoOrdine(OrdineService ordineServiceInstance) throws Exception{
 		System.out.println(".......testInserimentoNuovoOrdine inizio.............");
+		System.out.println("");
 
 		Date dataInserimento = new SimpleDateFormat("dd/MM/yyyy").parse("01/03/2022");
 		Ordine ordineInstance = new Ordine("Calogero Corsello", "Via Renato Simoni 73", dataInserimento);
@@ -65,10 +67,12 @@ public class testgestioneordini {
 			throw new RuntimeException("testInserimentoNuovoOrdine fallito ");
 
 		System.out.println(".......testInserimentoNuovoOrdine fine: PASSED.............");
+		System.out.println("");
 	}
 	
 	private static void testInserimentoNuovaCategoria(CategoriaService categoriaServiceInstance) throws Exception{
 		System.out.println(".......testInserimentoNuovaCategoria inizio.............");
+		System.out.println("");
 
 		Categoria categoriaInstance = new Categoria("Computer", "Codice1");
 		categoriaServiceInstance.inserisciNuovo(categoriaInstance);
@@ -76,26 +80,29 @@ public class testgestioneordini {
 			throw new RuntimeException("testInserimentoNuovaCategoria fallito ");
 
 		System.out.println(".......testInserimentoNuovaCategoria fine: PASSED.............");
+		System.out.println("");
 	}
 	
-//	private static void testAggiungiArticoloAdOrdineEsistente(ArticoloService articoloServiceInstance, OrdineService ordineServiceInstance) throws Exception {
-//		System.out.println(".......testAggiungiArticoloAdOrdineEsistente inizio.............");
-//
-//		Date dataInserimento = new SimpleDateFormat("dd/MM/yyyy").parse("12/03/2021");
-//		Ordine ordineInstance = new Ordine("Emanuele Seminara", "Via Tersicore 18", dataInserimento);
-//		ordineServiceInstance.inserisciNuovo(ordineInstance);
-//		if (ordineInstance.getId() == null)
-//			throw new RuntimeException("testAggiungiArticoloAdOrdineEsistente fallito ");
-//
-//		// mi creo un utente inserendolo direttamente su db
-//		Date dataInserimento1 = new SimpleDateFormat("dd/MM/yyyy").parse("14/01/2021");
-//		Articolo nuovoArticolo = new Articolo("Mac Air", "29ASDWE2W8SHD", 900, dataInserimento1);
-//		articoloServiceInstance.associaAdOrdine(nuovoArticolo, ordineInstance);
-//		articoloServiceInstance.inserisciNuovo(nuovoArticolo);
-//		if (nuovoArticolo.getId() == null)
-//			throw new RuntimeException("testAggiungiArticoloAdOrdineEsistente fallito: utente non inserito ");
-//
-//
-//		System.out.println(".......testAggiungiArticoloAdOrdineEsistente fine: PASSED.............");
-//	}
+	private static void testAggiungiArticoloAdOrdineEsistente(ArticoloService articoloServiceInstance, OrdineService ordineServiceInstance) throws Exception {
+		System.out.println(".......testAggiungiArticoloAdOrdineEsistente inizio.............");
+		System.out.println("");
+
+		Date dataInserimento = new SimpleDateFormat("dd/MM/yyyy").parse("12/03/2021");
+		Ordine ordineInstance = new Ordine("Emanuele Seminara", "Via Tersicore 18", dataInserimento);
+		ordineServiceInstance.inserisciNuovo(ordineInstance);
+		if (ordineInstance.getId() == null)
+			throw new RuntimeException("testAggiungiArticoloAdOrdineEsistente fallito ");
+
+		// mi creo un utente inserendolo direttamente su db
+		Date dataInserimento1 = new SimpleDateFormat("dd/MM/yyyy").parse("14/01/2021");
+		Articolo nuovoArticolo = new Articolo("Mac Air", "29ASDWE2W8SHD", 900, dataInserimento1);
+		nuovoArticolo.setOrdine(ordineInstance);
+		ordineServiceInstance.associaArticoloAdOrdine(ordineInstance, nuovoArticolo);
+		Ordine ordineReloaded = ordineServiceInstance.caricaOrdineSingoloConArticoli(ordineInstance.getId());
+		if(ordineReloaded.getArticoli().size() != 1) {
+			throw new RuntimeException("testAggiungiArticoloAdOrdineEsistente fallito: associazione articolo-ordine fallita");
+		}
+		System.out.println(".......testAggiungiArticoloAdOrdineEsistente fine: PASSED.............");
+		System.out.println("");
+	}
 }
