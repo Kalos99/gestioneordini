@@ -70,7 +70,7 @@ public class OrdineDAOImpl implements OrdineDAO{
 	@Override
 	public List<Ordine> findAllByCategoria(Categoria input) throws Exception {
 		TypedQuery<Ordine> query = entityManager
-				.createQuery("select o FROM Ordine o left join fetch o.articoli a left join fetch a.categorie c where a.categorie = :categoriainput", Ordine.class);
+				.createQuery("select o FROM Ordine o left join o.articoli a left join a.categorie c where c= :categoriainput", Ordine.class);
 		query.setParameter("categoriainput", input);
 		return query.getResultList();
 	}

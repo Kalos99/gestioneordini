@@ -40,6 +40,7 @@ public class Testgestioneordini {
 			testDisassociaDaCategoriaEsistente(categoriaServiceInstance, articoloServiceInstance, ordineServiceInstance);
 			testRimuoviArticoloDaOrdineEsistente(articoloServiceInstance, ordineServiceInstance);
 			testRimuoviForzatamenteOrdine(ordineServiceInstance, articoloServiceInstance, categoriaServiceInstance);
+			testTrovaOrdiniConCategoria(ordineServiceInstance, articoloServiceInstance, categoriaServiceInstance);
 
 			System.out.println(
 					"****************************** fine batteria di test ********************************************");
@@ -211,7 +212,6 @@ public class Testgestioneordini {
 		articoloServiceInstance.inserisciNuovo(nuovoArticolo);
 		ordineServiceInstance.associaArticoloAdOrdine(ordineInstance, nuovoArticolo);
 		Ordine ordineReloaded = ordineServiceInstance.caricaOrdineSingoloConArticoli(ordineInstance.getId());
-		System.out.println(ordineReloaded.getArticoli().size());
 		if(ordineReloaded.getArticoli().size() != 1) {
 			throw new RuntimeException("testRimuoviForzatamenteOrdine fallito: associazione articolo-ordine fallita");
 		}
@@ -230,4 +230,40 @@ public class Testgestioneordini {
 		System.out.println(".......testRimuoviForzatamenteOrdine fine: PASSED.............");
 		System.out.println("");
 	}
+	
+	private static void testTrovaOrdiniConCategoria(OrdineService ordineServiceInstance, ArticoloService articoloServiceInstance, CategoriaService categoriaServiceInstance) throws Exception{
+		System.out.println(".......testTrovaOrdiniConCategoria inizio.............");
+		System.out.println("");
+
+		Date dataInserimento = new SimpleDateFormat("dd/MM/yyyy").parse("30/09/2021");
+		Ordine ordineInstance = new Ordine("Matteo Politano", "Via Napoli 321", dataInserimento);
+		ordineServiceInstance.inserisciNuovo(ordineInstance);
+		if (ordineInstance.getId() == null)
+			throw new RuntimeException("testTrovaOrdiniConCategoria fallito ");
+
+		Date dataInserimento1 = new SimpleDateFormat("dd/MM/yyyy").parse("21/07/2021");
+		Articolo nuovoArticolo = new Articolo("tapis roulant", "XSA93DF123AZR", 300, dataInserimento1);
+		nuovoArticolo.setOrdine(ordineInstance);
+		articoloServiceInstance.inserisciNuovo(nuovoArticolo);
+		ordineServiceInstance.associaArticoloAdOrdine(ordineInstance, nuovoArticolo);
+		Ordine ordineReloaded = ordineServiceInstance.caricaOrdineSingoloConArticoli(ordineInstance.getId());
+		if(ordineReloaded.getArticoli().size() != 1) {
+			throw new RuntimeException("testTrovaOrdiniConCategoria fallito: associazione articolo-ordine fallita");
+		}
+		Categoria categoriaInstance = new Categoria("Attrezzatura", "Codice3");
+		categoriaServiceInstance.inserisciNuovo(categoriaInstance);
+		if (categoriaInstance.getId() == null)
+			throw new RuntimeException("testTrovaOrdiniConCategoria fallito ");
+		articoloServiceInstance.collegaACategoriaEsistente(categoriaInstance, nuovoArticolo);
+		Articolo articoloReloaded = articoloServiceInstance.caricaArticoloSingoloConCategorie(nuovoArticolo.getId());
+		if(articoloReloaded.getCategorie().size() != 1) 
+			throw new RuntimeException("testTrovaOrdiniConCategoria fallito: associazione articolo-categoria fallita");
+		List<Ordine> ordiniConCategoriaX = ordineServiceInstance.trovaOrdiniConCategoria(categoriaInstance);
+		if(ordiniConCategoriaX.size() != 1) 
+			throw new RuntimeException("testTrovaOrdiniConCategoria fallito: ricerca fallita");
+		
+		System.out.println(".......testTrovaOrdiniConCategoria fine: PASSED.............");
+		System.out.println("");
+	}
+	
 }
