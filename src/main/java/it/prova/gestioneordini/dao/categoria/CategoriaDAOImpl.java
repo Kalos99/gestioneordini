@@ -59,4 +59,12 @@ public class CategoriaDAOImpl implements CategoriaDAO{
 		query.setParameter("articolo", articoloInput);
 		return query.getResultList();
 	}
+
+	@Override
+	public Categoria findByIdFetchingArticoli(Long id) throws Exception {
+		TypedQuery<Categoria> query = entityManager
+				.createQuery("select c FROM Categoria a left join fetch c.articoli a where a.id = :idCategoria", Categoria.class);
+		query.setParameter("idCategoria", id);
+		return query.getResultList().stream().findFirst().orElse(null);
+	}
 }

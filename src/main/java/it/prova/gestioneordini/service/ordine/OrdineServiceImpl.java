@@ -9,6 +9,7 @@ import it.prova.gestioneordini.dao.articolo.ArticoloDAO;
 import it.prova.gestioneordini.dao.ordine.OrdineDAO;
 import it.prova.gestioneordini.exception.ArticoliAssociatiException;
 import it.prova.gestioneordini.model.Articolo;
+import it.prova.gestioneordini.model.Categoria;
 import it.prova.gestioneordini.model.Ordine;
 
 public class OrdineServiceImpl implements OrdineService{
@@ -173,6 +174,28 @@ public class OrdineServiceImpl implements OrdineService{
 		}
 		
 	}
+	
+	public void rimuoviArticoloDaOrdineEsistente(Articolo articoloInstance) throws Exception{
+		EntityManager entityManager = EntityManagerUtil.getEntityManager();
+
+		try {
+			// questo è come il MyConnection.getConnection()
+			entityManager.getTransaction().begin();
+
+			// uso l'injection per il dao
+			articoloDAO.setEntityManager(entityManager);
+
+			articoloDAO.delete(articoloInstance);;
+
+			entityManager.getTransaction().commit();
+		} catch (Exception e) {
+			entityManager.getTransaction().rollback();
+			e.printStackTrace();
+			throw e;
+		} finally {
+			EntityManagerUtil.closeEntityManager(entityManager);
+		}
+	}
 
 	@Override
 	public void setOrdineDAO(OrdineDAO ordineDAO) {
@@ -204,4 +227,53 @@ public class OrdineServiceImpl implements OrdineService{
 		}
 	}
 
+	@Override
+	public void rimuoviForzatamenteOrdine(Ordine ordineInstance) throws Exception {
+		
+		EntityManager entityManager = EntityManagerUtil.getEntityManager();
+		try {
+			// questo è come il MyConnection.getConnection()
+			entityManager.getTransaction().begin();
+
+			// uso l'injection per il dao
+			ordineDAO.setEntityManager(entityManager);
+			articoloDAO.setEntityManager(entityManager);
+
+			// eseguo quello che realmente devo fare
+			if(articoloDAO.findAllByOrdine(ordineInstance).size() != 0) {
+				for(Articolo articoloItem : articoloDAO.findAllByOrdine(ordineInstance)) {
+					for (Categoria categoriaItem : articoloItem.getCategorie()) {
+						articoloItem.removeFromCategorie(categoriaItem);
+					}
+					articoloDAO.delete(articoloItem);
+				}
+			}
+
+			ordineDAO.delete(ordineInstance);
+
+			entityManager.getTransaction().commit();
+		} catch (Exception e) {
+			entityManager.getTransaction().rollback();
+			e.printStackTrace();
+			throw e;
+		} finally {
+			EntityManagerUtil.closeEntityManager(entityManager);
+		}
+	}
+
+	@Override
+	public List<Ordine> trovaOrdiniConCategoria(Categoria input) throws Exception {
+		EntityManager entityManager = EntityManagerUtil.getEntityManager();
+
+		try {
+			ordineDAO.setEntityManager(entityManager);
+
+			return ordineDAO.findAllByCategoria(input);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		} finally {
+			EntityManagerUtil.closeEntityManager(entityManager);
+		}
+	}
 }

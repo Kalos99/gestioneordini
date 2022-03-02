@@ -10,4 +10,5 @@ import it.prova.gestioneordini.model.Ordine;
 public interface ArticoloDAO extends IBaseDAO<Articolo> {
 	public List<Articolo> findAllByCategoria(Categoria categoriaInput) throws Exception; 
 	public List<Articolo> findAllByOrdine(Ordine ordineInput) throws Exception; 
+	public Articolo findByIdFetchingCategorie(Long id) throws Exception;
 }

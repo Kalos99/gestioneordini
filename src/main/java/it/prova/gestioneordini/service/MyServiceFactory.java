@@ -19,6 +19,8 @@ public class MyServiceFactory {
 			articoloServiceInstance = new ArticoloServiceImpl();
 
 		articoloServiceInstance.setArticoloDAO(MyDaoFactory.getArticoloDAOInstance());
+		articoloServiceInstance.setCategoriaDAO(MyDaoFactory.getCategoriaDAOInstance());
+		articoloServiceInstance.setOrdineDAO(MyDaoFactory.getOrdineDAOInstance());
 
 		return articoloServiceInstance;
 	}

@@ -1,6 +1,7 @@
 package it.prova.gestioneordini.test;
 
 import java.util.Date;
+import java.util.List;
 import java.text.SimpleDateFormat;
 
 import it.prova.gestioneordini.dao.EntityManagerUtil;
@@ -12,7 +13,7 @@ import it.prova.gestioneordini.service.articolo.ArticoloService;
 import it.prova.gestioneordini.service.categoria.CategoriaService;
 import it.prova.gestioneordini.service.ordine.OrdineService;
 
-public class testgestioneordini {
+public class Testgestioneordini {
 
 	public static void main(String[] args) {
 		ArticoloService articoloServiceInstance = MyServiceFactory.getArticoloServiceInstance();
@@ -35,6 +36,10 @@ public class testgestioneordini {
 			testInserimentoNuovoOrdine(ordineServiceInstance);
 			testInserimentoNuovaCategoria(categoriaServiceInstance);
 			testAggiungiArticoloAdOrdineEsistente(articoloServiceInstance, ordineServiceInstance);
+			testCollegaArticoloECategoria(categoriaServiceInstance, articoloServiceInstance);
+			testDisassociaDaCategoriaEsistente(categoriaServiceInstance, articoloServiceInstance, ordineServiceInstance);
+			testRimuoviArticoloDaOrdineEsistente(articoloServiceInstance, ordineServiceInstance);
+			testRimuoviForzatamenteOrdine(ordineServiceInstance, articoloServiceInstance, categoriaServiceInstance);
 
 			System.out.println(
 					"****************************** fine batteria di test ********************************************");
@@ -93,7 +98,6 @@ public class testgestioneordini {
 		if (ordineInstance.getId() == null)
 			throw new RuntimeException("testAggiungiArticoloAdOrdineEsistente fallito ");
 
-		// mi creo un utente inserendolo direttamente su db
 		Date dataInserimento1 = new SimpleDateFormat("dd/MM/yyyy").parse("14/01/2021");
 		Articolo nuovoArticolo = new Articolo("Mac Air", "29ASDWE2W8SHD", 900, dataInserimento1);
 		nuovoArticolo.setOrdine(ordineInstance);
@@ -103,6 +107,127 @@ public class testgestioneordini {
 			throw new RuntimeException("testAggiungiArticoloAdOrdineEsistente fallito: associazione articolo-ordine fallita");
 		}
 		System.out.println(".......testAggiungiArticoloAdOrdineEsistente fine: PASSED.............");
+		System.out.println("");
+	}
+	
+	private static void testCollegaArticoloECategoria(CategoriaService categoriaServiceInstance, ArticoloService articoloServiceInstance) throws Exception {
+		System.out.println(".......testAggiungiCategoriaAdArticoloEsistente inizio.............");
+		System.out.println("");
+
+		Categoria categoriaInstance = new Categoria("Elettronica", "Codice2");
+		categoriaServiceInstance.inserisciNuovo(categoriaInstance);
+		if (categoriaInstance.getId() == null)
+			throw new RuntimeException("testInserimentoNuovaCategoria fallito ");
+
+		List<Articolo> listaArticoliPresenti = articoloServiceInstance.listAllArticoli();
+		Articolo ultimoArticoloAggiunto = listaArticoliPresenti.get(listaArticoliPresenti.size()-1);
+		articoloServiceInstance.collegaACategoriaEsistente(categoriaInstance, ultimoArticoloAggiunto);
+		Articolo articoloReloaded = articoloServiceInstance.caricaArticoloSingoloConCategorie(ultimoArticoloAggiunto.getId());
+		if(articoloReloaded.getCategorie().size() != 1) {
+			throw new RuntimeException("testAggiungiCategoriaAdArticoloEsistente fallito: associazione articolo-categoria fallita");
+		}
+		System.out.println(".......testAggiungiCategoriaAdArticoloEsistente fine: PASSED.............");
+		System.out.println("");
+	}
+	
+	private static void testDisassociaDaCategoriaEsistente(CategoriaService categoriaServiceInstance, ArticoloService articoloServiceInstance, OrdineService ordineServiceInstance) throws Exception{
+		System.out.println(".......testDisassociaDaCategoriaEsistente inizio.............");
+		System.out.println("");
+
+		Categoria categoriaInstance = new Categoria("Informatica", "Codice3");
+		categoriaServiceInstance.inserisciNuovo(categoriaInstance);
+		if (categoriaInstance.getId() == null)
+			throw new RuntimeException("testDisassociaDaCategoriaEsistente fallito ");
+
+		Date dataInserimento = new SimpleDateFormat("dd/MM/yyyy").parse("17/01/2021");
+		Articolo nuovoArticolo = new Articolo("Tastiera meccanica", "4EI323DC0D23M", 60, dataInserimento);
+		List<Ordine> listaOrdiniPresenti = ordineServiceInstance.listAllOrdini();
+		Ordine ultimoOrdineInserito = listaOrdiniPresenti.get(listaOrdiniPresenti.size()-1);
+		nuovoArticolo.setOrdine(ultimoOrdineInserito);
+		articoloServiceInstance.inserisciNuovo(nuovoArticolo);
+		ordineServiceInstance.associaArticoloAdOrdine(ultimoOrdineInserito, nuovoArticolo);
+		Ordine ordineReloaded = ordineServiceInstance.caricaOrdineSingoloConArticoli(ultimoOrdineInserito.getId());
+		if(ordineReloaded.getArticoli().size() < 1) {
+			throw new RuntimeException("testAggiungiArticoloAdOrdineEsistente fallito: associazione articolo-ordine fallita");
+		}
+		articoloServiceInstance.collegaACategoriaEsistente(categoriaInstance, nuovoArticolo);
+		Articolo articoloReloaded = articoloServiceInstance.caricaArticoloSingoloConCategorie(nuovoArticolo.getId());
+		if(articoloReloaded.getCategorie().size() != 1) {
+			throw new RuntimeException("testDisassociaDaCategoriaEsistente fallito: associazione articolo-categoria fallita");
+		}
+		
+		articoloServiceInstance.disassociaDaCategoriaEsistente(categoriaInstance, articoloReloaded);
+		Articolo articoloReloaded2 = articoloServiceInstance.caricaArticoloSingoloConCategorie(articoloReloaded.getId());
+		if(articoloReloaded2.getCategorie().size() !=  0) {
+			throw new RuntimeException("testDisassociaDaCategoriaEsistente fallito: disassociazione articolo-categoria fallita");
+		}
+		System.out.println(".......testDisassociaDaCategoriaEsistente fine: PASSED.............");
+		System.out.println("");
+	}
+	
+	private static void testRimuoviArticoloDaOrdineEsistente(ArticoloService articoloServiceInstance, OrdineService ordineServiceInstance) throws Exception {
+		System.out.println(".......testRimuoviArticoloDaOrdineEsistente inizio.............");
+		System.out.println("");
+
+		Date dataInserimento = new SimpleDateFormat("dd/MM/yyyy").parse("02/02/2022");
+		Ordine ordineInstance = new Ordine("Flavio Amato", "Via Italia 15", dataInserimento);
+		ordineServiceInstance.inserisciNuovo(ordineInstance);
+		if (ordineInstance.getId() == null)
+			throw new RuntimeException("testRimuoviArticoloDaOrdineEsistente fallito ");
+
+		Date dataInserimento1 = new SimpleDateFormat("dd/MM/yyyy").parse("14/05/2021");
+		Articolo nuovoArticolo = new Articolo("Air pods", "SHDED24020HD2", 250, dataInserimento1);
+		nuovoArticolo.setOrdine(ordineInstance);
+		articoloServiceInstance.inserisciNuovo(nuovoArticolo);
+		ordineServiceInstance.associaArticoloAdOrdine(ordineInstance, nuovoArticolo);
+		Ordine ordineReloaded = ordineServiceInstance.caricaOrdineSingoloConArticoli(ordineInstance.getId());
+		System.out.println(ordineReloaded.getArticoli().size());
+		if(ordineReloaded.getArticoli().size() != 1) {
+			throw new RuntimeException("testRimuoviArticoloDaOrdineEsistente fallito: associazione articolo-ordine fallita");
+		}
+		ordineServiceInstance.rimuoviArticoloDaOrdineEsistente(nuovoArticolo);	
+		Ordine ordineReloaded2 = ordineServiceInstance.caricaOrdineSingoloConArticoli(ordineInstance.getId());
+		System.out.println(ordineReloaded2.getArticoli().size());
+		if(ordineReloaded2.getArticoli().size() != 0) {
+			throw new RuntimeException("testRimuoviArticoloDaOrdineEsistente fallito: disassociazione articolo-ordine fallita");
+		}
+		System.out.println(".......testRimuoviArticoloDaOrdineEsistente fine: PASSED.............");
+		System.out.println("");
+	}
+	
+	private static void testRimuoviForzatamenteOrdine(OrdineService ordineServiceInstance, ArticoloService articoloServiceInstance, CategoriaService categoriaServiceInstance) throws Exception{
+		System.out.println(".......testRimuoviForzatamenteOrdine inizio.............");
+		System.out.println("");
+
+		Date dataInserimento = new SimpleDateFormat("dd/MM/yyyy").parse("15/09/2021");
+		Ordine ordineInstance = new Ordine("Luca Tamburo", "Via Nino Martoglio 2", dataInserimento);
+		ordineServiceInstance.inserisciNuovo(ordineInstance);
+		if (ordineInstance.getId() == null)
+			throw new RuntimeException("testRimuoviForzatamenteOrdine fallito ");
+
+		Date dataInserimento1 = new SimpleDateFormat("dd/MM/yyyy").parse("21/05/2021");
+		Articolo nuovoArticolo = new Articolo("ipad", "COW24WQSCGY32", 500, dataInserimento1);
+		nuovoArticolo.setOrdine(ordineInstance);
+		articoloServiceInstance.inserisciNuovo(nuovoArticolo);
+		ordineServiceInstance.associaArticoloAdOrdine(ordineInstance, nuovoArticolo);
+		Ordine ordineReloaded = ordineServiceInstance.caricaOrdineSingoloConArticoli(ordineInstance.getId());
+		System.out.println(ordineReloaded.getArticoli().size());
+		if(ordineReloaded.getArticoli().size() != 1) {
+			throw new RuntimeException("testRimuoviForzatamenteOrdine fallito: associazione articolo-ordine fallita");
+		}
+		List<Categoria> listaCategoriePresenti = categoriaServiceInstance.listAllCategorie();
+		Categoria ultimaCategoriaInserita = listaCategoriePresenti.get(listaCategoriePresenti.size()-1);
+		articoloServiceInstance.collegaACategoriaEsistente(ultimaCategoriaInserita, nuovoArticolo);
+		Articolo articoloReloaded = articoloServiceInstance.caricaArticoloSingoloConCategorie(nuovoArticolo.getId());
+		if(articoloReloaded.getCategorie().size() != 1) 
+			throw new RuntimeException("testAggiungiCategoriaAdArticoloEsistente fallito: associazione articolo-categoria fallita");
+		List<Ordine> listaOrdiniPresenti = ordineServiceInstance.listAllOrdini();
+		ordineServiceInstance.rimuoviForzatamenteOrdine(ordineReloaded);
+		List<Ordine> listaPostRimozione = ordineServiceInstance.listAllOrdini();
+		if(listaOrdiniPresenti.size() == listaPostRimozione.size()) 
+			throw new RuntimeException("testRimuoviForzatamenteOrdine fallito: rimozione fallita");
+		
+		System.out.println(".......testRimuoviForzatamenteOrdine fine: PASSED.............");
 		System.out.println("");
 	}
 }

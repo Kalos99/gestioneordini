@@ -68,4 +68,12 @@ public class ArticoloDAOImpl implements ArticoloDAO{
 		return query.getResultList();
 	}
 
+	@Override
+	public Articolo findByIdFetchingCategorie(Long id) throws Exception {
+		TypedQuery<Articolo> query = entityManager
+				.createQuery("select a FROM Articolo a left join fetch a.categorie c where a.id = :idArticolo", Articolo.class);
+		query.setParameter("idArticolo", id);
+		return query.getResultList().stream().findFirst().orElse(null);
+	}
+
 }

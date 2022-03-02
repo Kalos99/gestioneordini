@@ -199,4 +199,14 @@ public class Articolo {
 				+ "\nPrezzo singolo articolo: " + this.getPrezzoSingolo() + "\n\nCategorie di appartenenza: " 
 				+ "\n\n" + this.getCategorie().toString();
 	}
+	
+	public void addToCategorie(Categoria categoriaInstance) {
+		this.categorie.add(categoriaInstance);
+		categoriaInstance.getArticoli().add(this);
+	}
+
+	public void removeFromCategorie(Categoria categoriaInstance) {
+		this.categorie.remove(categoriaInstance);
+		categoriaInstance.getArticoli().remove(this);
+	}
 }
