@@ -29,6 +29,8 @@ public interface OrdineService {
 	public void rimuoviForzatamenteOrdine(Ordine ordineInstance) throws Exception;
 	
 	public List<Ordine> trovaOrdiniConCategoria(Categoria input) throws Exception;
+	
+	public List<Categoria> trovaCategorieDistinteInOrdine(Long id) throws Exception;
 
 	//per injection
 	public void setOrdineDAO(OrdineDAO ordineDAO);

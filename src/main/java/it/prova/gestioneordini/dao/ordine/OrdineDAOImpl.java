@@ -74,4 +74,12 @@ public class OrdineDAOImpl implements OrdineDAO{
 		query.setParameter("categoriainput", input);
 		return query.getResultList();
 	}
+
+	@Override
+	public List<Categoria> findAllCategorieDistinte(Long id) throws Exception {
+		TypedQuery<Categoria> query = entityManager
+				.createQuery("select distinct c FROM Ordine o left join o.articoli a left join a.categorie c where o.id= :idOrdine", Categoria.class);
+		query.setParameter("idOrdine", id);
+		return query.getResultList();
+	}
 }

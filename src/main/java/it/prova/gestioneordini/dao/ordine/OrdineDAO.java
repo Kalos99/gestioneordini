@@ -10,4 +10,5 @@ public interface OrdineDAO extends IBaseDAO<Ordine>{
 	public Ordine findByIdFetchingArticoli(Long id) throws Exception;
 	public Ordine findByIdFetchingArticoliFetchingCategorie(Long id) throws Exception;
 	public List<Ordine> findAllByCategoria (Categoria input) throws Exception;
+	public List<Categoria> findAllCategorieDistinte(Long id) throws Exception; 
 }
